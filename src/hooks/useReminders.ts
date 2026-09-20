@@ -26,8 +26,11 @@ export interface ReminderBannerState {
  *
  * 定时器只在挂载时创建一次（tick 内通过 getState() 读取最新状态），
  * 不随任务/设置变化重建；切回前台时立即补检一次。
+ *
+ * enabled 为 false 时完全不启动：配置了云端时必须等 hydrate + 合并完成后再跑，
+ * 否则会基于过期的本地数据把任务误转「进行中」并推回云端。
  */
-export function useReminders() {
+export function useReminders(enabled = true) {
   const [taskBanner, setTaskBanner] = useState<ReminderBannerState | null>(null);
   const [habitBanner, setHabitBanner] = useState<ReminderBannerState | null>(null);
   const timersRef = useRef<{ task: number | null; habit: number | null }>({ task: null, habit: null });
@@ -74,6 +77,8 @@ export function useReminders() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) return undefined;
+
     tick(); // 挂载立即检查一次
 
     const intervalId = window.setInterval(tick, CHECK_INTERVAL_MS);
@@ -88,7 +93,7 @@ export function useReminders() {
       if (timersRef.current.task !== null) window.clearTimeout(timersRef.current.task);
       if (timersRef.current.habit !== null) window.clearTimeout(timersRef.current.habit);
     };
-  }, [tick]);
+  }, [tick, enabled]);
 
   const dismissTaskBanner = useCallback(() => {
     setTaskBanner(null);

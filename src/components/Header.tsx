@@ -1,17 +1,21 @@
 import { useRef, useState, type ChangeEvent } from 'react';
-import { BarChart3, Bell, CalendarDays, CheckSquare, Download, ListChecks, Moon, Plus, Sun, Upload } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, CheckSquare, CloudOff, Cloudy, Download, ListChecks, Moon, Plus, Sun, Upload } from 'lucide-react';
 import type { View } from '../types';
 import { useTaskStore } from '../store/useTaskStore';
 import { useHabitStore } from '../store/useHabitStore';
 import { useToastStore } from '../store/useToastStore';
 import { exportDataToFile, importDataFromText, type ImportMode } from '../utils/backup';
-import { isCloudConfigured, uploadLocalToCloud } from '../lib/cloud';
+import { isCloudConfigured, buildTaskOrder } from '../lib/cloud';
+import { completionKey, enqueueMany, flushOutbox, SETTINGS_KEY, TASK_ORDER_KEY, taskKey, templateKey, type OutboxOp } from '../lib/syncQueue';
 import ImportModal from './ImportModal';
 
 interface HeaderProps {
   view: View;
   onSwitchView: (view: View) => void;
   onOpenSettings: () => void;
+  onOpenCloud: () => void;
+  /** 待同步条目数（>0 时云图标显示提示点） */
+  pendingSync: number;
   onCreate: () => void;
 }
 
@@ -22,7 +26,7 @@ const TABS: Array<{ key: View; label: string }> = [
   { key: 'stats', label: '统计' },
 ];
 
-export default function Header({ view, onSwitchView, onOpenSettings, onCreate }: HeaderProps) {
+export default function Header({ view, onSwitchView, onOpenSettings, onOpenCloud, pendingSync, onCreate }: HeaderProps) {
   const theme = useTaskStore((state) => state.theme);
   const setTheme = useTaskStore((state) => state.setTheme);
   const addToast = useToastStore((state) => state.addToast);
@@ -32,7 +36,7 @@ export default function Header({ view, onSwitchView, onOpenSettings, onCreate }:
   const isBoard = view === 'board';
   const isStats = view === 'stats';
   const isCalendar = view === 'calendar';
-  const title = isBoard ? '任务面板' : isStats ? '统计' : isCalendar ? '日历' : '每日习惯';
+  const title = isBoard ? '任务看板' : isStats ? '统计' : isCalendar ? '日历' : '每日习惯';
 
   const handleImportFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -71,21 +75,31 @@ export default function Header({ view, onSwitchView, onOpenSettings, onCreate }:
       }
       addToast(parts.length > 0 ? '导入完成：' + parts.join('，') + '（原有数据保留）' : '导入完成：没有新增数据');
     }
-    // 导入直接改写了 store，将全量推送到云端（幂等，可重跑）
+    // 导入直接改写了 store：把全量数据入队补推云端（幂等，可重跑；离线时排队等联网）
     if (isCloudConfigured()) {
       const taskState = useTaskStore.getState();
       const habitState = useHabitStore.getState();
-      const upload = await uploadLocalToCloud({
-        tasks: taskState.tasks,
-        templates: habitState.templates,
-        completions: habitState.completions,
-        settings: {
-          taskReminder: taskState.reminderSettings,
-          habitReminder: habitState.reminderSettings,
-          theme: taskState.theme,
+      enqueueMany([
+        ...taskState.tasks.map((task): OutboxOp => ({ type: 'task-upsert', key: taskKey(task.id), task })),
+        ...habitState.templates.map(
+          (template): OutboxOp => ({ type: 'template-upsert', key: templateKey(template.id), template }),
+        ),
+        ...Object.entries(habitState.completions).map(
+          ([date, ids]): OutboxOp => ({ type: 'completion-set', key: completionKey(date), date, templateIds: ids }),
+        ),
+        { type: 'task-order', key: TASK_ORDER_KEY, order: buildTaskOrder(taskState.tasks) },
+        {
+          type: 'settings-set',
+          key: SETTINGS_KEY,
+          settings: {
+            taskReminder: taskState.reminderSettings,
+            habitReminder: habitState.reminderSettings,
+            theme: taskState.theme,
+          },
         },
-      });
-      if (!upload.ok) addToast('导入已生效，但云端同步失败，请稍后重新导入一次（不会自动补齐）', 'error');
+      ]);
+      const result = await flushOutbox(true);
+      if (!result.ok) addToast('导入已生效，云端同步已排队（联网后自动补同步）', 'error');
     }
   };
 
@@ -128,6 +142,25 @@ export default function Header({ view, onSwitchView, onOpenSettings, onCreate }:
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onOpenCloud}
+            aria-label="云端连接与空间密钥"
+            title={
+              !isCloudConfigured()
+                ? '云端未配置（纯本地模式）'
+                : pendingSync > 0
+                  ? '云端已连接，' + pendingSync + ' 项待同步'
+                  : '云端连接与空间密钥'
+            }
+            className="btn-ghost relative"
+          >
+            {isCloudConfigured() ? <Cloudy className="h-5 w-5" /> : <CloudOff className="h-5 w-5" />}
+            {pendingSync > 0 && (
+              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+            )}
+          </button>
+
           <button type="button" onClick={exportDataToFile} aria-label="导出数据备份" title="导出数据备份（JSON）" className="btn-ghost">
             <Download className="h-5 w-5" />
           </button>

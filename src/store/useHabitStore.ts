@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CompletionMap, HabitReminderSettings, TaskTemplate } from '../types/habit';
-import { upsertTemplate, removeTemplate, upsertCompletion, writeThrough } from '../lib/cloud';
-import { useToastStore } from './useToastStore';
+import { isCloudConfigured } from '../lib/cloud';
+import { completionKey, enqueue, templateKey } from '../lib/syncQueue';
 
 export const DEFAULT_HABIT_REMINDER_SETTINGS: HabitReminderSettings = {
   enabled: false,
@@ -35,8 +35,24 @@ function createId(): string {
   return Date.now() + '-' + Math.random().toString(36).slice(2, 9);
 }
 
-function syncFail(message: string): void {
-  useToastStore.getState().addToast(message, 'error');
+/** 未配置云端时跳过入队：纯本地模式不写队列，保持「零影响」 */
+function pushTemplate(template: TaskTemplate): void {
+  if (!isCloudConfigured()) return;
+  enqueue({ type: 'template-upsert', key: templateKey(template.id), template });
+}
+
+function pushTemplateRemoval(id: string): void {
+  if (!isCloudConfigured()) return;
+  enqueue({ type: 'template-remove', key: templateKey(id), id });
+}
+
+/**
+ * 打卡补推。base 是本次改动前该日期的值（三方合并的公共祖先），
+ * 云端合并时用它算出「本机新增/取消」的增量，避免覆盖其他设备同时打的卡。
+ */
+function pushCompletion(date: string, templateIds: string[], base: string[]): void {
+  if (!isCloudConfigured()) return;
+  enqueue({ type: 'completion-set', key: completionKey(date), date, templateIds, base });
 }
 
 export const useHabitStore = create<HabitStoreState>()(
@@ -53,72 +69,62 @@ export const useHabitStore = create<HabitStoreState>()(
           emoji: input.emoji?.trim() === '' ? undefined : input.emoji?.trim(),
           category: input.category?.trim() === '' ? undefined : input.category?.trim(),
           createdAt: new Date().toISOString(),
+          updatedAt: Date.now(),
         };
-        if (!(await writeThrough(() => upsertTemplate(template)))) {
-          syncFail('同步失败，习惯未添加');
-          return null;
-        }
         set((state) => ({ templates: [...state.templates, template] }));
+        pushTemplate(template);
         return template;
       },
 
       updateTemplate: async (id, updates) => {
         const existing = get().templates.find((t) => t.id === id);
         if (existing === undefined) return false;
-        const merged: TaskTemplate = { ...existing, ...updates };
-        if (!(await writeThrough(() => upsertTemplate(merged)))) {
-          syncFail('同步失败，习惯未更新');
-          return false;
-        }
+        const merged: TaskTemplate = { ...existing, ...updates, updatedAt: Date.now() };
         set((state) => ({
           templates: state.templates.map((t) => (t.id === id ? merged : t)),
         }));
+        pushTemplate(merged);
         return true;
       },
 
       deleteTemplate: async (id) => {
-        if (!(await writeThrough(() => removeTemplate(id)))) {
-          syncFail('同步失败，习惯未删除');
-          return false;
+        const existing = get().templates.find((t) => t.id === id);
+        if (existing === undefined) return false;
+        const completions: CompletionMap = {};
+        for (const key of Object.keys(get().completions)) {
+          const day = get().completions[key];
+          const ids = day.filter((x) => x !== id);
+          if (ids.length > 0) completions[key] = ids;
+          // 只重写真正包含该习惯的日期：否则会把本地可能过期的打卡列表写回云端
+          if (ids.length !== day.length) pushCompletion(key, ids, day);
         }
-        set((state) => {
-          const completions: CompletionMap = {};
-          for (const key of Object.keys(state.completions)) {
-            const ids = state.completions[key].filter((x) => x !== id);
-            if (ids.length > 0) completions[key] = ids;
-            // 同步清理云端打卡记录里的残留 id
-            void upsertCompletion(key, ids);
-          }
-          return { templates: state.templates.filter((t) => t.id !== id), completions };
-        });
+        set((state) => ({
+          templates: state.templates.filter((t) => t.id !== id),
+          completions,
+        }));
+        pushTemplateRemoval(id);
         return true;
       },
 
       archiveTemplate: async (id) => {
         const existing = get().templates.find((t) => t.id === id);
         if (existing === undefined) return false;
-        const merged: TaskTemplate = { ...existing, archived: true };
-        if (!(await writeThrough(() => upsertTemplate(merged)))) {
-          syncFail('同步失败，习惯未归档');
-          return false;
-        }
+        const merged: TaskTemplate = { ...existing, archived: true, updatedAt: Date.now() };
         set((state) => ({
           templates: state.templates.map((t) => (t.id === id ? merged : t)),
         }));
+        pushTemplate(merged);
         return true;
       },
 
       unarchiveTemplate: async (id) => {
         const existing = get().templates.find((t) => t.id === id);
         if (existing === undefined) return false;
-        const merged: TaskTemplate = { ...existing, archived: false };
-        if (!(await writeThrough(() => upsertTemplate(merged)))) {
-          syncFail('同步失败，习惯未恢复');
-          return false;
-        }
+        const merged: TaskTemplate = { ...existing, archived: false, updatedAt: Date.now() };
         set((state) => ({
           templates: state.templates.map((t) => (t.id === id ? merged : t)),
         }));
+        pushTemplate(merged);
         return true;
       },
 
@@ -126,11 +132,8 @@ export const useHabitStore = create<HabitStoreState>()(
         const day = get().completions[date] ?? [];
         const has = day.includes(templateId);
         const next = has ? day.filter((x) => x !== templateId) : [...day, templateId];
-        if (!(await writeThrough(() => upsertCompletion(date, next)))) {
-          syncFail('同步失败，打卡未保存');
-          return false;
-        }
         set((state) => ({ completions: { ...state.completions, [date]: next } }));
+        pushCompletion(date, next, day);
         return true;
       },
 
@@ -139,32 +142,41 @@ export const useHabitStore = create<HabitStoreState>()(
         const has = day.includes(templateId);
         if (has === done) return true;
         const next = done ? [...day, templateId] : day.filter((x) => x !== templateId);
-        if (!(await writeThrough(() => upsertCompletion(date, next)))) {
-          syncFail('同步失败，打卡未保存');
-          return false;
-        }
         set((state) => ({ completions: { ...state.completions, [date]: next } }));
+        pushCompletion(date, next, day);
         return true;
       },
 
       updateReminderSettings: (updates) =>
-        // 本地立即生效；云端弱一致推送由 App 层统一监听后执行
+        // 本地立即生效；云端弱一致推送由 App 层统一监听后入队执行
         set((state) => ({ reminderSettings: { ...state.reminderSettings, ...updates } })),
 
       recordReminderSent: (timestamp) =>
         set((state) => ({ reminderSettings: { ...state.reminderSettings, lastSentAt: timestamp } })),
     }),
-    { name: 'daily-habit-storage', version: 1, migrate: (persistedState, _version) => {
-      // 与任务 store 对齐：建立版本迁移机制，为后续字段变更提供兜底路径。
-      // 当前为 v1，仅做结构兜底（templates 必须是数组、completions 必须是对象）。
-      if (persistedState === null || typeof persistedState !== 'object') return persistedState;
-      const obj = persistedState as Record<string, unknown>;
-      const inner = obj.state && typeof obj.state === 'object' ? (obj.state as Record<string, unknown>) : obj;
-      if (!Array.isArray(inner.templates)) inner.templates = [];
-      if (inner.completions === null || typeof inner.completions !== 'object' || Array.isArray(inner.completions)) {
-        inner.completions = {};
-      }
-      return persistedState as HabitStoreState;
-    } },
+    {
+      name: 'daily-habit-storage',
+      version: 2,
+      migrate: (persistedState, version) => {
+        // 与任务 store 对齐：建立版本迁移机制，为后续字段变更提供兜底路径。
+        if (persistedState === null || typeof persistedState !== 'object') return persistedState;
+        const obj = persistedState as Record<string, unknown>;
+        const inner = obj.state && typeof obj.state === 'object' ? (obj.state as Record<string, unknown>) : obj;
+        if (!Array.isArray(inner.templates)) inner.templates = [];
+        if (inner.completions === null || typeof inner.completions !== 'object' || Array.isArray(inner.completions)) {
+          inner.completions = {};
+        }
+        // v2：补齐模板 updatedAt（合并冲突判定需要）
+        if (version < 2 && Array.isArray(inner.templates)) {
+          inner.templates = (inner.templates as unknown[]).map((raw) => {
+            const template = (raw ?? {}) as Record<string, unknown>;
+            if (typeof template.updatedAt === 'number') return template;
+            const parsed = typeof template.createdAt === 'string' ? Date.parse(template.createdAt) : NaN;
+            return { ...template, updatedAt: Number.isNaN(parsed) ? Date.now() : parsed };
+          });
+        }
+        return persistedState as HabitStoreState;
+      },
+    },
   ),
 );

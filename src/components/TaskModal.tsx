@@ -117,7 +117,7 @@ export default function TaskModal({ open, task, onClose, initialStartDate = null
         addToast('任务已创建');
       }
     }
-    // 云写失败时 store 已提示「同步失败」，保持弹窗打开便于重试
+    // 写入为本地先行（云端由离线队列异步补推），只有取不到任务时 saved 才为 false
     if (saved) onClose();
   };
 

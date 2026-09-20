@@ -78,7 +78,7 @@ export default function HabitModal({ open, habit, onClose }: HabitModalProps) {
         addToast('习惯已添加');
       }
     }
-    // 云写失败时 store 已提示「同步失败」，保持弹窗打开便于重试
+    // 写入为本地先行（云端由离线队列异步补推），只有取不到习惯时 saved 才为 false
     if (saved) onClose();
   };
 

@@ -38,13 +38,17 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, overlay = fa
     const wasOverdue = isOverdue(task.startDate, task.dueDate, task.status);
     if (completing && task.repeat !== undefined) {
       const next = await completeRecurring(task.id);
-      if (next === undefined) return; // 云写失败，store 已提示
-      if (next !== null) addToast('任务已完成，已生成下一周期任务');
-      else addToast(wasOverdue ? '任务已完成（已逾期）' : '任务已完成');
+      addToast(next !== null ? '任务已完成，已生成下一周期任务' : wasOverdue ? '任务已完成（已逾期）' : '任务已完成');
       return;
     }
-    const ok = await toggleDone(task.id);
-    if (ok && completing) addToast(wasOverdue ? '任务已完成（已逾期）' : '任务已完成');
+    const result = await toggleDone(task.id);
+    if (!result.ok) return;
+    if (completing) {
+      addToast(wasOverdue ? '任务已完成（已逾期）' : '任务已完成');
+    } else {
+      // 取消完成可能顺带回收刚才自动生成的副本，需要明确告知，避免任务「莫名消失」
+      addToast(result.reclaimedCopyId !== null ? '已取消完成，并移除了自动生成的下一周期任务' : '已取消完成');
+    }
   };
 
   const handleArchive = async () => {

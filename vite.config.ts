@@ -47,4 +47,22 @@ export default defineConfig({
     port: 5173,
     open: false,
   },
+  build: {
+    // 首屏包只保留应用代码与 React；CloudBase SDK（约 730KB）通过动态 import 单独成块，
+    // 只有配置了云端并真正发起同步时才加载，因此这里的阈值按「懒加载大块」放宽。
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@cloudbase')) return 'vendor-cloudbase';
+          if (id.includes('react-dom') || id.includes('/react/') || id.includes('scheduler')) return 'vendor-react';
+          if (id.includes('@dnd-kit')) return 'vendor-dnd';
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          if (id.includes('zustand')) return 'vendor-state';
+          return 'vendor';
+        },
+      },
+    },
+  },
 });

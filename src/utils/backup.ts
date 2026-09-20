@@ -105,8 +105,10 @@ function sanitizeTask(raw: unknown): Task {
     dueDate: typeof t.dueDate === 'string' ? t.dueDate : '',
     createdAt: typeof t.createdAt === 'number' ? t.createdAt : now,
     updatedAt: typeof t.updatedAt === 'number' ? t.updatedAt : now,
+    completedAt: status === 'done' && typeof t.completedAt === 'number' ? t.completedAt : null,
     repeat:
       t.repeat === 'daily' || t.repeat === 'weekly' || t.repeat === 'monthly' ? t.repeat : undefined,
+    repeatOf: typeof t.repeatOf === 'string' && t.repeatOf !== '' ? t.repeatOf : undefined,
     archived: t.archived === true,
   };
 }
@@ -119,6 +121,8 @@ function sanitizeTemplate(raw: unknown): TaskTemplate {
     emoji: typeof t.emoji === 'string' && t.emoji.trim() !== '' ? t.emoji : undefined,
     category: typeof t.category === 'string' && t.category.trim() !== '' ? t.category : undefined,
     createdAt: typeof t.createdAt === 'string' ? t.createdAt : new Date().toISOString(),
+    updatedAt: typeof t.updatedAt === 'number' ? t.updatedAt : undefined,
+    archived: t.archived === true,
   };
 }
 

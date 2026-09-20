@@ -62,7 +62,7 @@ export default function StatsView() {
         <div className="mt-5">
           <div className="flex items-baseline justify-between">
             <h3 className="text-sm font-semibold text-muted-foreground">近 7 天完成任务数</h3>
-            <span className="text-xs text-muted-foreground/70">按完成时的更新时间近似统计</span>
+            <span className="text-xs text-muted-foreground/70">按任务实际完成时间统计</span>
           </div>
           {activeTasks.length === 0 ? (
             <p className="mt-3 rounded-xl bg-muted/50 px-3 py-6 text-center text-sm text-muted-foreground">还没有任务数据</p>

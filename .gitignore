@@ -15,11 +15,13 @@ tmp-verify-import
 .run/
 logs/
 
-# 微信开发者工具生成的本地配置
+# 微信开发者工具生成的本地配置（本项目是纯 Web，这两个文件不属于仓库内容）
 project.config.json
 project.private.config.json
 
-# 本地脚本与计划文件
-启动任务面板.vbs
-停止任务面板.vbs
+# 第三方开源参考项目（仅本地阅读用，含各自 License，禁止混入本仓库）
+开源参考/
+参考/
+
+# 本地计划文件
 task-dashboard-sept-plan-*.json
