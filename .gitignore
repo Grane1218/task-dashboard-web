@@ -11,6 +11,10 @@ dist
 dev-server.log
 tmp-verify-import
 
+# 启动器运行时状态与日志
+.run/
+logs/
+
 # 微信开发者工具生成的本地配置
 project.config.json
 project.private.config.json

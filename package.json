@@ -1,11 +1,13 @@
 {
   "name": "task-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node scripts/server.mjs",
+    "serve": "node scripts/server.mjs"
   },
   "dependencies": {
     "@cloudbase/js-sdk": "^3.10.0",

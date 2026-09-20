@@ -20,24 +20,51 @@
 - 响应式布局（移动端折叠为列表）与深色/浅色模式
 - 弹窗统一支持 ESC 关闭、焦点管理与无障碍语义
 
-## 启动命令
+## 启动方式
+
+### 一键启动（推荐）
+
+Windows 下**双击根目录的 `启动看板.cmd`** 即可进入启动菜单：
+
+| 菜单项 | 说明 |
+| --- | --- |
+| 1 开发模式 | Vite 热更新调试；关闭所有页面后服务自动停止，Ctrl+C 也可随时停止 |
+| 2 生产模式 | `tsc` 类型检查 + `vite build` 构建后，由内置零依赖静态服务器**常驻后台**（默认 http://127.0.0.1:4173 ），自动打开浏览器 |
+| 3 仅启动服务 | 跳过构建，直接托管现有 `dist` |
+| 4 停止后台服务 | 停止常驻服务并清理运行状态 |
+| 5 重新安装依赖 | `npm install` |
+| 6 打开应用页面 | 自动探测运行中的服务并打开浏览器 |
+| 7 创建桌面快捷方式 | 在桌面生成 `任务看板.lnk` |
+
+首次运行会自动检测环境：未安装 Node.js 或版本低于 18 时给出指引；`node_modules` 缺失时自动安装依赖。
+
+也支持命令行直接指定模式：`启动看板.cmd [dev|prod|serve|stop|install|open|shortcut]`，可加 `-NoPause`（不等待按键）、`-NoOpen`（不自动打开浏览器）开关。
+
+后台服务的运行状态保存在 `.run/server.json`，日志在 `logs/server.out.log` 与 `logs/server.err.log`（均已在 .gitignore 中忽略）。
+
+### npm 命令
 
 \`\`\`bash
 npm install
 npm run dev       # 启动开发服务器
 npm run build     # 类型检查 + 生产构建
+npm run start     # 托管 dist（等价 node scripts/server.mjs）
+npm run serve     # 同上（别名）
 npm run preview   # 预览生产构建
 \`\`\`
 
 ## 目录结构
 
 \`\`\`
+启动看板.cmd      # Windows 一键启动入口
+scripts/          # start.ps1 启动器 + server.mjs 生产静态服务器
 src/
   components/   # UI 组件
-  store/        # Zustand 状态（任务 + 提醒 + Toast）
+  store/        # Zustand 状态（任务 + 习惯 + 番茄钟 + Toast）
   types/        # TypeScript 类型定义
-  utils/        # notificationHelper / reminderScheduler / date / filter
+  utils/        # notificationHelper / reminderScheduler / date / filter / backup ...
   hooks/        # useReminder（轮询逻辑封装）
+  lib/          # cloud.ts（CloudBase 云端同步接入层）
 \`\`\`
 
 > 提醒系统说明：应用每分钟轮询一次；「每日/每周/每月」按自然日、自然周（周一为起点）、自然月判定，同一周期内只触发一次（防重复）；
