@@ -145,6 +145,15 @@ describe('持久化', () => {
     expect(entries[0].op.type === 'task-upsert' && entries[0].op.task.title).toBe('离线新建');
   });
 
+  it('重新加载模块后 pendingCount 立即等于已落盘条数（启动读数）', () => {
+    enqueue({ type: 'task-upsert', key: taskKey('a'), task: task('a', '离线新建') });
+    enqueue({ type: 'task-upsert', key: taskKey('b'), task: task('b', '离线再建') });
+    __resetOutboxForTests(); // 等价于离线刷新页面
+    // App 用它初始化「待同步」计数：离线首轮 flushOutbox 不会 emit，
+    // 因此启动读数必须直接来自队列本身，否则界面会谎报 0 项
+    expect(pendingCount()).toBe(2);
+  });
+
   it('清除后为空', () => {
     enqueue({ type: 'task-upsert', key: taskKey('a'), task: task('a') });
     clearOutbox();

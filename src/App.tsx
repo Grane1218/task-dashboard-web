@@ -47,6 +47,7 @@ import {
   flushOutbox,
   getOutbox,
   onOutboxChange,
+  pendingCount,
   SETTINGS_KEY,
   startAutoFlush,
   taskKey,
@@ -72,7 +73,9 @@ export default function App() {
 
   // —— 云端：状态订阅 / 离线队列 ——
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>(getCloudStatus());
-  const [pendingSync, setPendingSync] = useState(0);
+  // 用队列真实条数初始化：离线刷新时首轮 flushOutbox 会在 ensureCloud 失败处直接返回（不 emit），
+  // 若从 0 起步，云面板与角标会在整个启动窗口期谎报「0 项待同步」，而队列其实是满的。
+  const [pendingSync, setPendingSync] = useState(() => pendingCount());
   // 未配置云时无需等待：本地数据即为权威源；配置了云则必须等 hydrate 完成，
   // 否则启动清单会基于「过期的本地数据」推送错误内容。
   const [booted, setBooted] = useState(!isCloudConfigured());
@@ -297,20 +300,18 @@ export default function App() {
     const target = deleteTaskTarget;
     setDeleteTaskTarget(null);
     if (target === null) return;
-    // 延迟 5 秒真正删除，期间可在 Toast 中撤销（登记持久化，刷新后仍会落地删除）
-    const timer = window.setTimeout(() => {
-      cancelPendingDelete('task', target.id); // 已落地，撤销窗口结束
-      void useTaskStore.getState().deleteTask(target.id);
-    }, UNDO_WINDOW_MS);
-    schedulePendingDelete({ kind: 'task', id: target.id, at: Date.now() + UNDO_WINDOW_MS });
+    // 延迟 5 秒真正删除，期间可在 Toast 中撤销（登记持久化，刷新后仍会落地删除）。
+    // 定时器由 pendingDelete 统一管理：同一任务重复确认只会重置窗口，不会排第二个定时器；
+    // 撤销会同时取消定时器与登记，窗口结束时还会再查一次登记，因此撤销后绝不会被删除。
+    schedulePendingDelete(
+      { kind: 'task', id: target.id, at: Date.now() + UNDO_WINDOW_MS },
+      (item) => void useTaskStore.getState().deleteTask(item.id),
+    );
     addToast('任务已删除，5 秒内可撤销', 'success', {
       actionLabel: '撤销',
       // 与撤销窗口保持一致：窗口一过按钮同步消失，不会出现「点了没反应」
       duration: UNDO_WINDOW_MS,
-      onAction: () => {
-        window.clearTimeout(timer);
-        cancelPendingDelete('task', target.id);
-      },
+      onAction: () => cancelPendingDelete('task', target.id),
     });
   };
 
@@ -328,19 +329,16 @@ export default function App() {
     const target = deleteHabitTarget;
     setDeleteHabitTarget(null);
     if (target === null) return;
-    // 延迟 5 秒真正删除，期间可在 Toast 中撤销（完成记录随删除一并清除）
-    const timer = window.setTimeout(() => {
-      cancelPendingDelete('habit', target.id); // 已落地，撤销窗口结束
-      void useHabitStore.getState().deleteTemplate(target.id);
-    }, UNDO_WINDOW_MS);
-    schedulePendingDelete({ kind: 'habit', id: target.id, at: Date.now() + UNDO_WINDOW_MS });
+    // 延迟 5 秒真正删除，期间可在 Toast 中撤销（完成记录随删除一并清除）；
+    // 定时器与撤销语义同任务删除，见 pendingDelete.ts
+    schedulePendingDelete(
+      { kind: 'habit', id: target.id, at: Date.now() + UNDO_WINDOW_MS },
+      (item) => void useHabitStore.getState().deleteTemplate(item.id),
+    );
     addToast('习惯已删除，5 秒内可撤销', 'success', {
       actionLabel: '撤销',
       duration: UNDO_WINDOW_MS,
-      onAction: () => {
-        window.clearTimeout(timer);
-        cancelPendingDelete('habit', target.id);
-      },
+      onAction: () => cancelPendingDelete('habit', target.id),
     });
   };
 
