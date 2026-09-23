@@ -22,6 +22,7 @@ import type { Task, TaskStatus } from '../types';
 import { REPEAT_LABELS, STATUS_LABELS } from '../types';
 import { useTaskStore } from '../store/useTaskStore';
 import { filterTasks, type TaskFilters } from '../utils/filter';
+import { matchesSelectedDate } from '../utils/dateScope';
 import TaskCard from './TaskCard';
 
 const COLUMNS: TaskStatus[] = ['todo', 'in-progress', 'done'];
@@ -35,20 +36,25 @@ const COLUMN_ACCENTS: Record<TaskStatus, string> = {
 interface BoardViewProps {
   tasks: Task[];
   filters: TaskFilters;
+  /** 日期视图选中的日期；null = 「全部」模式（不按日期过滤，行为与改造前一致） */
+  dateKey: string | null;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
   onClearFilters: () => void;
+  onClearDateScope: () => void;
 }
 
 interface ColumnProps {
   status: TaskStatus;
   tasks: Task[];
   filtering: boolean;
+  dateScoped: boolean;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
   onClearFilters: () => void;
+  onClearDateScope: () => void;
 }
 
 interface SortableCardProps {
@@ -86,7 +92,16 @@ function remapVisibleOrder(full: string[], movedVisible: string[]): string[] {
   return result;
 }
 
-export default function BoardView({ tasks, filters, onEdit, onDelete, onFocus, onClearFilters }: BoardViewProps) {
+export default function BoardView({
+  tasks,
+  filters,
+  dateKey,
+  onEdit,
+  onDelete,
+  onFocus,
+  onClearFilters,
+  onClearDateScope,
+}: BoardViewProps) {
   const applyOrder = useTaskStore((state) => state.applyOrder);
   const unarchiveTask = useTaskStore((state) => state.unarchiveTask);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -94,8 +109,14 @@ export default function BoardView({ tasks, filters, onEdit, onDelete, onFocus, o
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const activeTasks = useMemo(() => tasks.filter((task) => !task.archived), [tasks]);
   const archivedTasks = useMemo(() => tasks.filter((task) => task.archived), [tasks]);
-  const visibleTasks = useMemo(() => filterTasks(activeTasks, filters), [activeTasks, filters]);
+  // 日期视图是第一道过滤（纯显示层）：之后仍走原有 search/priority/status 过滤，语义不变
+  const scopedTasks = useMemo(
+    () => (dateKey === null ? activeTasks : activeTasks.filter((task) => matchesSelectedDate(task, dateKey))),
+    [activeTasks, dateKey],
+  );
+  const visibleTasks = useMemo(() => filterTasks(scopedTasks, filters), [scopedTasks, filters]);
   const filtering = filters.search.trim() !== '' || filters.priority !== 'all' || filters.status !== 'all';
+  const dateScoped = dateKey !== null;
 
   const handleDragStart = (event: DragStartEvent) => setActiveId(String(event.active.id));
 
@@ -106,6 +127,8 @@ export default function BoardView({ tasks, filters, onEdit, onDelete, onFocus, o
 
     const activeTaskId = String(active.id);
     const overId = String(over.id);
+    // fullItems 始终取「未归档全量」：日期/关键词过滤只是显示层，
+    // 拖拽仍写入全局顺序，被隐藏的任务由 remapVisibleOrder 保持原位（见下方同列分支）。
     const fullItems = groupIds(activeTasks);
     const visibleItems = groupIds(visibleTasks);
     const activeContainer = findContainer(activeTaskId, fullItems);
@@ -151,10 +174,12 @@ export default function BoardView({ tasks, filters, onEdit, onDelete, onFocus, o
               status={status}
               tasks={visibleTasks.filter((task) => task.status === status)}
               filtering={filtering}
+              dateScoped={dateScoped}
               onEdit={onEdit}
               onDelete={onDelete}
               onFocus={onFocus}
               onClearFilters={onClearFilters}
+              onClearDateScope={onClearDateScope}
             />
           ))}
         </div>
@@ -208,7 +233,7 @@ export default function BoardView({ tasks, filters, onEdit, onDelete, onFocus, o
   );
 }
 
-function Column({ status, tasks, filtering, onEdit, onDelete, onFocus, onClearFilters }: ColumnProps) {
+function Column({ status, tasks, filtering, dateScoped, onEdit, onDelete, onFocus, onClearFilters, onClearDateScope }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const ids = tasks.map((task) => task.id);
 
@@ -247,6 +272,17 @@ function Column({ status, tasks, filtering, onEdit, onDelete, onFocus, onClearFi
                   className="mt-1 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-accent"
                 >
                   清除筛选
+                </button>
+              </>
+            ) : dateScoped ? (
+              <>
+                <span className="text-sm">这一天没有任务</span>
+                <button
+                  type="button"
+                  onClick={onClearDateScope}
+                  className="mt-1 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  显示全部任务
                 </button>
               </>
             ) : (

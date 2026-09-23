@@ -11,6 +11,7 @@ import Header from './components/Header';
 import PermissionBanner from './components/PermissionBanner';
 import StatsCards from './components/StatsCards';
 import FilterBar from './components/FilterBar';
+import DateScopeBar from './components/DateScopeBar';
 import BoardView from './components/BoardView';
 import TaskModal from './components/TaskModal';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -62,6 +63,13 @@ import {
   writeStartupState,
 } from './utils/startupState';
 import { cancelPendingDelete, schedulePendingDelete, takeExpiredDeletions, UNDO_WINDOW_MS } from './utils/pendingDelete';
+import {
+  DEFAULT_DATE_SCOPE,
+  readDateScope,
+  scopeDateKey,
+  writeDateScope,
+  type DateScope,
+} from './utils/dateScope';
 
 export default function App() {
   const tasks = useTaskStore((state) => state.tasks);
@@ -88,6 +96,8 @@ export default function App() {
 
   const [view, setView] = useState<View>('board');
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
+  // 看板日期视图：纯显示过滤，独立 localStorage 键，不进云端同步与备份
+  const [dateScope, setDateScope] = useState<DateScope>(() => readDateScope());
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskDatePrefill, setTaskDatePrefill] = useState<string | null>(null);
@@ -107,6 +117,11 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+  // 日期视图选择本地持久化：只存 UI 偏好，不写任务数据、不入云同步、不进备份
+  useEffect(() => {
+    writeDateScope(dateScope);
+  }, [dateScope]);
 
   // —— 云状态订阅 / 离线队列自动冲刷 ——
   useEffect(() => onCloudStatusChange(setCloudStatus), []);
@@ -391,6 +406,8 @@ export default function App() {
 
   const cloudConfigured = isCloudConfigured();
   const showSpaceWarning = cloudConfigured && !isSpaceIsolated();
+  // null = 「全部」模式：看板渲染与改造前完全一致
+  const boardDateKey = scopeDateKey(dateScope);
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
@@ -444,13 +461,21 @@ export default function App() {
           <>
             <StatsCards tasks={tasks} />
             <FilterBar filters={filters} onChange={setFilters} />
+            <DateScopeBar
+              scope={dateScope}
+              onChange={setDateScope}
+              tasks={tasks}
+              onCreateOnDate={openCreateTaskOn}
+            />
             <BoardView
               tasks={tasks}
               filters={filters}
+              dateKey={boardDateKey}
               onEdit={openEditTask}
               onDelete={setDeleteTaskTarget}
               onFocus={openFocus}
               onClearFilters={() => setFilters(DEFAULT_FILTERS)}
+              onClearDateScope={() => setDateScope(DEFAULT_DATE_SCOPE)}
             />
           </>
         ) : view === 'habits' ? (

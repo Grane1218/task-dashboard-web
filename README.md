@@ -9,6 +9,7 @@
 - 重复任务：每天/每周/每月自动生成下一周期任务（顺延到**下一个尚未过去的周期**，逾期很久才完成也不会生成立即逾期的副本；支持月末截断）；取消完成原任务时自动回收刚生成且尚未被触碰的副本
 - 任务归档：归档到「已归档」区，不参与统计与提醒，可随时恢复
 - 日历视图：月历展示任务（按截止/开始日归位），点击空白日期快速新建（预填当天）、点击任务直接编辑
+- 看板日期视图：看板顶部日期条可在「全部 / 今天 / 前后一天 / 本周 7 天 / 月历」之间切换，三列统一只显示选中日期与未设完整日期的任务（每天带任务数角标，可直接在选中日期新建任务）；默认「全部」，行为与改造前一致
 - 番茄钟专注：任务卡片一键开始 15/25/45 分钟专注，支持暂停/继续/结束，完成时系统通知并可一键标记任务完成（刷新页面计时不丢）
 - 键盘快捷键：N 新建、/ 搜索、1-4 切换视图、D 切换深浅色、? 查看帮助
 - 组合筛选与搜索：按标题模糊搜索，按优先级、状态筛选
@@ -49,7 +50,7 @@ Windows 下**双击根目录的 `启动看板.cmd`** 即可进入启动菜单：
 npm install
 npm run dev       # 启动开发服务器
 npm run build     # 类型检查 + 生产构建
-npm run test      # 单元测试（vitest，覆盖 utils/ 与 lib/ 纯逻辑）
+npm run test      # 单元测试（vitest：utils/ 与 lib/ 纯逻辑 + 组件 SSR 渲染冒烟）
 npm run start     # 托管 dist（等价 node scripts/server.mjs）
 npm run serve     # 同上（别名）
 npm run preview   # 预览生产构建
@@ -64,7 +65,7 @@ src/
   components/   # UI 组件
   store/        # Zustand 状态（任务 + 习惯 + 番茄钟 + Toast）
   types/        # TypeScript 类型定义
-  utils/        # notificationHelper / reminderScheduler / date / filter / backup ...
+  utils/        # notificationHelper / reminderScheduler / date / dateScope / filter / backup ...
   hooks/        # useReminder（轮询逻辑封装）
   lib/          # cloud.ts 云端接入 / syncQueue.ts 离线写队列 / merge.ts 冲突合并 / space.ts 空间密钥
   test/         # 测试环境桩（node 下补 window/localStorage）
@@ -118,6 +119,9 @@ src/
 - 取消完成一个重复任务时，会连带删除**由它自动生成、且至今未被触碰**的那一个副本（副本带 `repeatOf` 溯源；「未被触碰」= 仍为「待处理」且 `updatedAt === createdAt`），让「误点完成 → 取消完成」精确回到操作前的状态。若副本已经被拖动、自动开始或编辑过，则保留不动，并在提示里说明。
 - 任务的 `updatedAt` 是**单调递增**的：同一毫秒内的连续改动也严格递增。这既让多设备 last-write-wins 合并有确定顺序，也让「副本是否被触碰过」可以用 `updatedAt === createdAt` 可靠判定。
 - 统计的完成时间对旧数据（没有 `completedAt` 字段）回退为 `updatedAt` 近似值。
+- 看板日期视图只改变**看板的显示**：统计卡片、统计视图、提醒系统与启动清单仍按全量任务计算，不受选中日期影响。
+- 日期视图的判定口径：任务的 `startDate` 与 `dueDate` **任一为空（或非法）即视为「未设完整日期」，在任何日期下都显示**（避免因为没填日期而漏看）；两个日期都有效时，只有「开始日或截止日等于选中日期」才显示——区间中间的日期不会显示，跨天任务只在首尾两天出现。
+- 日期视图的选择保存在本机 localStorage（`task-dashboard-date-scope`），**不进入云端同步、不进入备份文件**；点「今天」时该选择会跨天自动跟随到新的一天（选具体日期则固定不变）。
 
 ## 仓库说明
 

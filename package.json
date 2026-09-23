@@ -1,7 +1,7 @@
 {
   "name": "task-dashboard",
   "private": true,
-  "version": "1.1.2",
+  "version": "1.2.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
