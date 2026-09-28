@@ -60,7 +60,7 @@ npm run preview   # 预览生产构建
 
 ```
 启动看板.cmd      # Windows 一键启动入口
-scripts/          # start.ps1 启动器 + server.mjs 生产静态服务器
+scripts/          # start.ps1 启动器 + server.mjs 生产静态服务器 + 云端同步诊断/清理脚本（v1.3.1）
 src/
   components/   # UI 组件
   store/        # Zustand 状态（任务 + 习惯 + 番茄钟 + Toast）
@@ -102,15 +102,44 @@ src/
 
 启动清单弹窗与启动通知严格在「同步 + 合并完成」之后才计算，多设备场景不会推送过期清单。
 
+### 同步失败排查（v1.3.1）
+
+```bash
+# 只读体检：各集合条数、数据归属（_openid）、哪些数据在当前空间模式下可见
+node scripts/diagnose-cloud-sync.mjs --project .
+
+# 判定集合写权限：--write-probe 会原样回写一条「他人的文档」（逐字段照抄、零内容变化，只验权限）
+node scripts/diagnose-cloud-sync.mjs --project . --write-probe
+
+# 清理旧空间遗留数据（带 space 字段、当前模式下看不到的那些）：先试运行，确认后加 --yes
+node scripts/purge-space-tagged.mjs --project .
+node scripts/purge-space-tagged.mjs --project . --yes --all
+```
+
+脚本复用 `dist/assets` 里**已构建的 CloudBase SDK**（与线上运行时代码一致），以一个全新的匿名身份登录——
+等价于「一台从没同步过的新设备」，所以「它能不能写别人的文档」就等于「小程序端能不能写网页端建的数据」。判定：
+
+- 写探针**成功** ⇒ 写权限没问题，继续查网络 / 空间密钥 / 具体报错；
+- 写探针报 `E11000 duplicate key`（或权限错误）⇒ 集合写权限限创建者，按下面「云端安全」改成 `{"read": true, "write": true}`。
+
+> 两端 SDK 签名不同，别写混：Web 端 `@cloudbase/js-sdk` v3 是 `doc(id).set(文档本身)`，
+> 小程序端 `wx.cloud` 是 `doc(id).set({ data: 文档 })`。传错会把整个文档嵌进一个 `data` 字段里。
+
 ### 云端安全（重要）
 
 - `VITE_CLOUDBASE_ENV` 会被打进前端 bundle，**任何人都能看到**，它不是秘密。
 - 匿名登录的 uid 每台设备独立，因此 `owner` 字段只作为写入归属记录，**不能用于过滤**（过滤会导致换设备读不到数据）。
 - 应用提供「空间密钥」做**应用层逻辑隔离**：密钥只保存在各设备的 localStorage，不进入 bundle；同密钥设备共享数据，不同密钥之间互相看不到对方数据（云端文档 `_id` 加空间前缀 + `space` 字段过滤）。
 - 逻辑隔离不等于授权。绕过本应用直接调用 CloudBase SDK 仍可能读到集合内的数据。**真正的访问控制必须依靠云开发安全规则**：
-  - 单人使用：把集合权限设为「仅创建者可读写」（`{"read": "doc._openid == auth.openid", "write": "doc._openid == auth.openid"}`）；
-  - 多人共享：为集合设置「所有用户可读写」时，请务必配合空间密钥，并知悉该权限下数据对任何已认证用户可读；
-  - 更高要求：接入真实登录（微信登录 / 用户名密码 / 自定义登录）后，用 `auth.uid` 维度下发规则。
+  - **本项目的 5 个集合必须允许「跨身份写入」**，自定义安全规则填 `{"read": true, "write": true}`（控制台若没有
+    「所有用户可读写」预设，就选自定义规则粘贴这段 JSON）。原因：网页端是**每台设备独立的匿名 uid**、小程序端是
+    **微信 openid**，两端天然是两个身份，却要互相修改对方创建的数据；
+  - **不要**用「仅创建者可读写」（`doc._openid == auth.openid || doc._openid == auth.uid`）。该规则下小程序能读到
+    网页端的数据却写不动，表现为点「完成 / 归档 / 编辑」时弹「同步失败，请重试」；`set()` 会硬报 `E11000`，
+    而 `remove()` **不报错但实际删不掉**（服务端按 `_openid` 过滤后匹配 0 条）；
+  - 需要隔离时用应用内的**空间密钥**：同密钥设备共享同一份数据，不同密钥互不可见（逻辑隔离不等于授权）；
+  - 更高要求：接入真实登录（微信登录 / 用户名密码 / 自定义登录）后，用 `auth.uid` 维度下发规则，
+    并把写操作移到云函数（管理员身份不受安全规则限制）。
 
 ## 已知行为
 

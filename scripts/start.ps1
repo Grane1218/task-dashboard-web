@@ -92,18 +92,56 @@ function Assert-Prerequisites {
   return $true
 }
 
+# 依赖完整性标记：**只判断 node_modules 目录是否存在是不够的**——
+# 目录可能还在但内容为空/只装了一半（手动清理、中断的安装、杀毒软件移除等），
+# 此时 tsc / vite 都找不到，构建会报「'tsc' 不是内部或外部命令，也不是可运行的程序」。
+$DependencyMarkers = @(
+  'node_modules\vite\bin\vite.js',
+  'node_modules\typescript\bin\tsc'
+)
+
+function Get-MissingDependencyNames {
+  $missing = @()
+  foreach ($relative in $DependencyMarkers) {
+    if (-not (Test-Path (Join-Path $ProjectRoot $relative))) {
+      $missing += ($relative -split '\\')[1]
+    }
+  }
+  return ($missing -join '、')
+}
+
+function Test-Dependencies {
+  foreach ($relative in $DependencyMarkers) {
+    if (-not (Test-Path (Join-Path $ProjectRoot $relative))) { return $false }
+  }
+  return $true
+}
+
 function Ensure-Dependencies {
-  if (Test-Path (Join-Path $ProjectRoot 'node_modules')) { return $true }
-  Write-Warn '首次运行：未检测到 node_modules，正在安装依赖（可能需要几分钟）...'
+  if (Test-Dependencies) { return $true }
+
+  if (Test-Path (Join-Path $ProjectRoot 'node_modules')) {
+    Write-Warn "依赖不完整（缺少 $(Get-MissingDependencyNames)），正在重新安装（npm install，可能需要几分钟）..."
+  } else {
+    Write-Warn '首次运行：未检测到 node_modules，正在安装依赖（可能需要几分钟）...'
+  }
+
   Push-Location $ProjectRoot
   try {
     & npm install
     if ($LASTEXITCODE -ne 0) {
-      Write-Err '依赖安装失败，请检查网络后重试（或运行 npm install 查看详细错误）。'
+      Write-Err '依赖安装失败，请检查网络后重试（或在项目根手动运行 npm install 查看详细错误）。'
       return $false
     }
   } finally {
     Pop-Location
+  }
+
+  # 安装命令返回 0 也可能没装全（例如被安全软件拦截），这里以实际文件为准再验一次
+  if (-not (Test-Dependencies)) {
+    $missing = Get-MissingDependencyNames
+    Write-Err "依赖安装后仍缺少 $missing。请在项目根手动运行 npm install 查看详细报错。"
+    return $false
   }
   Write-Ok '依赖安装完成'
   return $true
@@ -197,6 +235,7 @@ function Invoke-Serve([bool]$Build) {
       & npm run build
       if ($LASTEXITCODE -ne 0) {
         Write-Err '构建失败，请检查上方错误信息后重试。'
+        Write-Host '  提示：若报「''tsc'' 不是内部或外部命令」，说明依赖不完整，请先执行菜单 [5] 重新安装依赖。' -ForegroundColor DarkGray
         return
       }
     } finally {
@@ -405,3 +444,4 @@ try {
   Write-Err "发生未预期错误：$($_.Exception.Message)"
   Pause-IfNeeded '按回车键退出...'
 }
+
