@@ -14,6 +14,7 @@ import FilterBar from './components/FilterBar';
 import DateScopeBar from './components/DateScopeBar';
 import BoardView from './components/BoardView';
 import TaskModal from './components/TaskModal';
+import TaskDetailModal from './components/TaskDetailModal';
 import ConfirmDialog from './components/ConfirmDialog';
 import ReminderSettingsModal from './components/ReminderSettingsModal';
 import HabitsView from './components/habits/HabitsView';
@@ -100,6 +101,8 @@ export default function App() {
   const [dateScope, setDateScope] = useState<DateScope>(() => readDateScope());
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  // 只读详情弹窗：保存任务快照，关闭后不影响编辑/删除流程
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [taskDatePrefill, setTaskDatePrefill] = useState<string | null>(null);
   const [taskSettingsOpen, setTaskSettingsOpen] = useState(false);
   const [deleteTaskTarget, setDeleteTaskTarget] = useState<Task | null>(null);
@@ -307,6 +310,16 @@ export default function App() {
     setTaskModalOpen(true);
   };
 
+  const openTaskDetail = (task: Task) => {
+    setDetailTask(task);
+  };
+
+  // 详情 → 编辑：先关掉详情，避免两个弹窗同时打开（都锁 body 滚动、都占 z-50）
+  const editTaskFromDetail = (task: Task) => {
+    setDetailTask(null);
+    openEditTask(task);
+  };
+
   const openFocus = (task: Task) => {
     setFocusTask(task);
   };
@@ -474,6 +487,7 @@ export default function App() {
               onEdit={openEditTask}
               onDelete={setDeleteTaskTarget}
               onFocus={openFocus}
+              onView={openTaskDetail}
               onClearFilters={() => setFilters(DEFAULT_FILTERS)}
               onClearDateScope={() => setDateScope(DEFAULT_DATE_SCOPE)}
             />
@@ -489,6 +503,12 @@ export default function App() {
 
       {/* 任务相关弹窗 */}
       <TaskModal open={taskModalOpen} task={editingTask} initialStartDate={taskDatePrefill} onClose={() => setTaskModalOpen(false)} />
+      <TaskDetailModal
+        open={detailTask !== null}
+        task={detailTask}
+        onClose={() => setDetailTask(null)}
+        onEdit={editTaskFromDetail}
+      />
       <FocusModal open={focusTask !== null} task={focusTask} onClose={() => setFocusTask(null)} onMarkDone={handleMarkDoneFromFocus} />
       <KeyboardHelpModal open={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
       <ConfirmDialog

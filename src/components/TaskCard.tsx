@@ -1,4 +1,4 @@
-import { AlertCircle, Archive, Calendar, CheckCircle2, GripVertical, Pencil, Play, Repeat, Timer, Trash2 } from 'lucide-react';
+import { AlertCircle, Archive, Calendar, CheckCircle2, Eye, GripVertical, Pencil, Play, Repeat, Timer, Trash2 } from 'lucide-react';
 import type { Priority, Task } from '../types';
 import { PRIORITY_LABELS, REPEAT_LABELS } from '../types';
 import { formatDate, isDueToday, isOverdue } from '../utils/date';
@@ -11,6 +11,8 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
+  /** 查看任务完整内容（只读详情弹窗） */
+  onView: (task: Task) => void;
   overlay?: boolean;
 }
 
@@ -20,7 +22,7 @@ const PRIORITY_STYLES: Record<Priority, string> = {
   low: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
 };
 
-export default function TaskCard({ task, onEdit, onDelete, onFocus, overlay = false }: TaskCardProps) {
+export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, overlay = false }: TaskCardProps) {
   const toggleDone = useTaskStore((state) => state.toggleDone);
   const completeRecurring = useTaskStore((state) => state.completeRecurring);
   const archiveTask = useTaskStore((state) => state.archiveTask);
@@ -129,6 +131,15 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, overlay = fa
             <CheckCircle2 className="h-4 w-4" />
           </button>
           <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+            <button
+              type="button"
+              onClick={() => onView(task)}
+              aria-label="查看任务内容"
+              title="查看完整任务内容"
+              className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
             <button
               type="button"
               onClick={() => onFocus(task)}

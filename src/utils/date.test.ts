@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatDate,
+  formatTimestamp,
   isOverdue,
   parseDueDate,
   repeatPeriodsUntilFuture,
@@ -73,6 +74,24 @@ describe('formatDate / toDateTimeLocal', () => {
     expect(toDateTimeLocal('2024-05-06')).toBe('2024-05-06T00:00');
     expect(toDateTimeLocal('2024-05-06T07:08')).toBe('2024-05-06T07:08');
     expect(toDateTimeLocal('')).toBe('');
+  });
+});
+
+describe('formatTimestamp（毫秒时间戳 → 展示文案）', () => {
+  it('格式化为 YYYY/MM/DD HH:mm', () => {
+    const ms = new Date(2024, 4, 6, 7, 8).getTime();
+    expect(formatTimestamp(ms)).toBe('2024/05/06 07:08');
+  });
+
+  it('个位数月/日/时/分补零', () => {
+    const ms = new Date(2024, 0, 1, 0, 0).getTime();
+    expect(formatTimestamp(ms)).toBe('2024/01/01 00:00');
+  });
+
+  it('无效值返回空串，交给调用方决定占位文案', () => {
+    expect(formatTimestamp(null)).toBe('');
+    expect(formatTimestamp(undefined)).toBe('');
+    expect(formatTimestamp(Number.NaN)).toBe('');
   });
 });
 

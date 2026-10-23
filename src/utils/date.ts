@@ -69,6 +69,28 @@ export function formatDate(time: string): string {
   return parts[0] + '/' + parts[1] + '/' + parts[2] + timeText;
 }
 
+/**
+ * 把时间戳（毫秒，如 createdAt / completedAt）格式化为 "YYYY/MM/DD HH:mm"，与 formatDate 风格一致。
+ * 无效值（undefined / null / NaN / 非数字）返回空串，由调用方决定占位文案。
+ */
+export function formatTimestamp(ms: number | null | undefined): string {
+  if (ms === null || ms === undefined || !Number.isFinite(ms)) return '';
+  const date = new Date(ms);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    date.getFullYear() +
+    '/' +
+    pad(date.getMonth() + 1) +
+    '/' +
+    pad(date.getDate()) +
+    ' ' +
+    pad(date.getHours()) +
+    ':' +
+    pad(date.getMinutes())
+  );
+}
+
 // 转成 <input type="datetime-local"> 所需的 "YYYY-MM-DDTHH:mm" 格式
 export function toDateTimeLocal(time: string): string {
   const value = time ?? '';

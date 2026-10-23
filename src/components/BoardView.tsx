@@ -41,6 +41,7 @@ interface BoardViewProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
+  onView: (task: Task) => void;
   onClearFilters: () => void;
   onClearDateScope: () => void;
 }
@@ -53,6 +54,7 @@ interface ColumnProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
+  onView: (task: Task) => void;
   onClearFilters: () => void;
   onClearDateScope: () => void;
 }
@@ -62,6 +64,7 @@ interface SortableCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onFocus: (task: Task) => void;
+  onView: (task: Task) => void;
 }
 
 function groupIds(tasks: Task[]): Record<TaskStatus, string[]> {
@@ -99,6 +102,7 @@ export default function BoardView({
   onEdit,
   onDelete,
   onFocus,
+  onView,
   onClearFilters,
   onClearDateScope,
 }: BoardViewProps) {
@@ -178,6 +182,7 @@ export default function BoardView({
               onEdit={onEdit}
               onDelete={onDelete}
               onFocus={onFocus}
+              onView={onView}
               onClearFilters={onClearFilters}
               onClearDateScope={onClearDateScope}
             />
@@ -186,7 +191,14 @@ export default function BoardView({
 
         <DragOverlay dropAnimation={null}>
           {activeTask !== null ? (
-            <TaskCard task={activeTask} onEdit={onEdit} onDelete={onDelete} onFocus={onFocus} overlay />
+            <TaskCard
+              task={activeTask}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onFocus={onFocus}
+              onView={onView}
+              overlay
+            />
           ) : null}
         </DragOverlay>
       </DndContext>
@@ -233,7 +245,7 @@ export default function BoardView({
   );
 }
 
-function Column({ status, tasks, filtering, dateScoped, onEdit, onDelete, onFocus, onClearFilters, onClearDateScope }: ColumnProps) {
+function Column({ status, tasks, filtering, dateScoped, onEdit, onDelete, onFocus, onView, onClearFilters, onClearDateScope }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const ids = tasks.map((task) => task.id);
 
@@ -256,7 +268,7 @@ function Column({ status, tasks, filtering, dateScoped, onEdit, onDelete, onFocu
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onFocus={onFocus} />
+            <SortableCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onFocus={onFocus} onView={onView} />
           ))}
         </SortableContext>
 
@@ -295,7 +307,7 @@ function Column({ status, tasks, filtering, dateScoped, onEdit, onDelete, onFocu
   );
 }
 
-function SortableCard({ task, onEdit, onDelete, onFocus }: SortableCardProps) {
+function SortableCard({ task, onEdit, onDelete, onFocus, onView }: SortableCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -304,7 +316,7 @@ function SortableCard({ task, onEdit, onDelete, onFocus }: SortableCardProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={isDragging ? 'opacity-40' : undefined}>
-      <TaskCard task={task} onEdit={onEdit} onDelete={onDelete} onFocus={onFocus} />
+      <TaskCard task={task} onEdit={onEdit} onDelete={onDelete} onFocus={onFocus} onView={onView} />
     </div>
   );
 }
