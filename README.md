@@ -2,6 +2,8 @@
 
 使用 React 18 + TypeScript（严格模式）+ Tailwind CSS + Zustand 构建的单页任务看板应用。
 
+当前版本 **v1.3.2**，每个版本的更新内容记录在 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 功能特性
 
 - 三列看板（待处理 / 进行中 / 已完成），支持基于 @dnd-kit 的拖拽排序与状态切换（筛选状态下排序不错位）
