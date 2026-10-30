@@ -31,13 +31,20 @@ export default function ProgressCard({ total, completed, streak, title = '今日
         </div>
       </div>
 
-      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
+      <div
+        className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+        aria-label={`${title} ${completed}/${total}`}
+      >
         <div
           className={
-            'h-full rounded-full transition duration-500 ' +
-            (pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-primary to-primary/55')
+            'h-full w-full origin-left rounded-full transition-transform duration-500 motion-reduce:transition-none ' +
+            (pct === 100 ? 'bg-emerald-500' : 'bg-primary')
           }
-          style={{ width: pct + '%' }}
+          style={{ transform: `scaleX(${pct / 100})` }}
         />
       </div>
 
