@@ -26,15 +26,16 @@ interface TaskDetailModalProps {
 }
 
 const PRIORITY_STYLES: Record<Priority, string> = {
-  high: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  low: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  high: 'bg-destructive/10 text-destructive',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-success/10 text-success',
 };
 
+/** 状态徽标配色：完成态用成功色，与卡片上的勾选一致 */
 const STATUS_STYLES: Record<TaskStatus, string> = {
   todo: 'bg-muted text-muted-foreground',
   'in-progress': 'bg-primary/10 text-primary',
-  done: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  done: 'bg-success/10 text-success',
 };
 
 const BADGE = 'rounded-full px-2 py-0.5 text-xs font-medium';
@@ -124,7 +125,7 @@ export default function TaskDetailModal({ open, task, onClose, onEdit }: TaskDet
                 {overdue && (
                   <span
                     className={
-                      BADGE + ' inline-flex items-center gap-1 bg-red-500/10 text-red-600 dark:text-red-400'
+                      BADGE + ' inline-flex items-center gap-1 bg-destructive/10 text-destructive'
                     }
                   >
                     <AlertCircle className="h-3 w-3" />
@@ -132,7 +133,7 @@ export default function TaskDetailModal({ open, task, onClose, onEdit }: TaskDet
                   </span>
                 )}
                 {dueToday && (
-                  <span className={BADGE + ' bg-amber-500/10 text-amber-600 dark:text-amber-400'}>今日截止</span>
+                  <span className={BADGE + ' bg-warning/10 text-warning'}>今日截止</span>
                 )}
               </div>
             </div>
@@ -157,7 +158,7 @@ export default function TaskDetailModal({ open, task, onClose, onEdit }: TaskDet
               </DetailField>
               <DetailField icon={<Calendar className="h-3.5 w-3.5" />} label="截止时间">
                 {task.dueDate !== '' ? (
-                  <span className={overdue || dueToday ? 'font-semibold text-red-600 dark:text-red-400' : undefined}>
+                  <span className={overdue || dueToday ? 'font-semibold text-destructive' : undefined}>
                     {formatDate(task.dueDate)}
                   </span>
                 ) : (

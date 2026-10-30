@@ -17,9 +17,9 @@ interface TaskCardProps {
 }
 
 const PRIORITY_STYLES: Record<Priority, string> = {
-  high: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  low: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  high: 'bg-destructive/10 text-destructive',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-success/10 text-success',
 };
 
 export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, overlay = false }: TaskCardProps) {
@@ -101,14 +101,14 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, over
               </span>
             )}
             {task.dueDate !== '' && (
-              <span className={'inline-flex items-center gap-1 ' + (dueToday ? 'font-semibold text-red-600 dark:text-red-400' : '')}>
+              <span className={'inline-flex items-center gap-1 ' + (dueToday ? 'font-semibold text-destructive' : '')}>
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(task.dueDate)}
                 {dueToday ? ' · 今日截止' : ''}
               </span>
             )}
             {overdue && (
-              <span className="inline-flex items-center gap-1 font-semibold text-red-600 dark:text-red-400">
+              <span className="inline-flex items-center gap-1 font-semibold text-destructive">
                 <AlertCircle className="h-3.5 w-3.5" />
                 已逾期
               </span>
@@ -124,8 +124,8 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, over
             className={
               'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 transition duration-200 ' +
               (done
-                ? 'border-emerald-500 bg-emerald-500 text-white'
-                : 'border-gray-300 text-transparent hover:border-emerald-400 hover:text-emerald-500/60 dark:border-gray-600')
+                ? 'border-success bg-success text-white'
+                : 'border-muted-foreground/30 text-transparent hover:border-success/60 hover:text-success/60 dark:border-muted-foreground/40')
             }
           >
             <CheckCircle2 className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, over
               className={
                 'rounded-full p-1.5 transition-colors ' +
                 (inFocus
-                  ? 'text-emerald-500 hover:bg-accent'
+                  ? 'text-success hover:bg-accent'
                   : 'text-muted-foreground hover:bg-accent hover:text-primary disabled:cursor-not-allowed disabled:opacity-40')
               }
             >

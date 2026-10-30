@@ -16,7 +16,7 @@ export default function HabitItem({ habit, done, onToggle, onEdit, onDelete, onA
       className={
         'group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-apple transition duration-200 hover:shadow-apple-md ' +
         (done
-          ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10'
+          ? 'border-success/30 bg-success/5 dark:bg-success/10'
           : 'border-border/60')
       }
     >
@@ -27,8 +27,8 @@ export default function HabitItem({ habit, done, onToggle, onEdit, onDelete, onA
         className={
           'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition duration-200 active:scale-90 ' +
           (done
-            ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm'
-            : 'border-gray-300 bg-transparent text-transparent hover:border-primary hover:text-primary/40 dark:border-gray-600')
+            ? 'border-success bg-success text-white shadow-sm'
+            : 'border-muted-foreground/30 bg-transparent text-transparent hover:border-primary hover:text-primary/40 dark:border-muted-foreground/40')
         }
       >
         <Check className="h-4 w-4" />
@@ -69,7 +69,7 @@ export default function HabitItem({ habit, done, onToggle, onEdit, onDelete, onA
           onClick={() => onArchive(habit)}
           aria-label="归档习惯"
           title="归档：暂停参与每日统计与提醒，保留完成记录"
-          className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-amber-500"
+          className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-warning"
         >
           <Archive className="h-4 w-4" />
         </button>

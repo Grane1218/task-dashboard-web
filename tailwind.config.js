@@ -5,19 +5,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"SF Pro Text"',
-          '"SF Pro Display"',
-          '"Helvetica Neue"',
-          '"PingFang SC"',
-          '"Hiragino Sans GB"',
-          '"Microsoft YaHei"',
-          '"微软雅黑"',
-          'Arial',
-          'sans-serif',
-        ],
+        // 字体栈定义在 index.css 的 --font-sans，这里只做引用
+        sans: ['var(--font-sans)'],
       },
       colors: {
         // 语义化 token（Apple 风格，浅色/深色见 index.css）
@@ -33,6 +22,10 @@ module.exports = {
         accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
         popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
         card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        // 状态色（成功 / 提醒 / 信息）
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
+        info: 'hsl(var(--info))',
         // 保底中性灰阶（未语义化的类仍走这套）
         gray: {
           50: '#fafafa', 100: '#f5f5f7', 200: '#e8e8ed', 300: '#d2d2d7', 400: '#aeaeb2',

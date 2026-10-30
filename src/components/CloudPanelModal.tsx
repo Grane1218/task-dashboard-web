@@ -123,7 +123,7 @@ export default function CloudPanelModal({ open, onClose, pendingSync }: CloudPan
         <div>
           <label htmlFor="cloud-space" className="flex items-center gap-1.5 text-sm font-semibold">
             {isolated ? (
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <ShieldCheck className="h-4 w-4 text-success" />
             ) : (
               <ShieldAlert className="h-4 w-4 text-rose-500" />
             )}
@@ -152,8 +152,8 @@ export default function CloudPanelModal({ open, onClose, pendingSync }: CloudPan
             修改后页面会重新加载，本地数据会迁移到新空间。
           </p>
           {isUsingBuildHint() && (
-            <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
-              当前使用的是构建期 <code>VITE_CLOUDBASE_SPACE</code> 的值——它已被打进公开的 bundle，只能算「防误入」，不算秘密。建议改为在本机手动设置。
+            <p className="mt-1.5 text-xs text-warning">
+              当前使用的是构建期 <code>VITE_CLOUDBASE_SPACE</code> 的值。它已被打进公开的 bundle，只能算「防误入」，不算秘密；建议改为在本机手动设置。
             </p>
           )}
         </div>

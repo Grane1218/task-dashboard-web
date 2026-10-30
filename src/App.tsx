@@ -436,33 +436,33 @@ export default function App() {
 
       <div className="mx-auto max-w-7xl space-y-2 px-4 sm:px-6 lg:px-8">
         {cloudConfigured && cloudStatus === 'failed' && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-foreground">
             <span>
               云端未连接，当前写入保存在本机并进入待同步队列（联网后自动补同步）。请检查网络或
-              <code className="mx-1 rounded bg-amber-100 px-1 dark:bg-amber-900/50">VITE_CLOUDBASE_ENV</code>
+              <code className="mx-1 rounded bg-warning/15 px-1">VITE_CLOUDBASE_ENV</code>
               配置。
             </span>
-            <button type="button" onClick={handleRetrySync} className="rounded-full border border-amber-400 px-2.5 py-0.5 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/50">
+            <button type="button" onClick={handleRetrySync} className="rounded-full border border-warning/50 px-2.5 py-0.5 text-xs font-semibold hover:bg-warning/15">
               立即重试
             </button>
           </div>
         )}
 
         {cloudConfigured && cloudStatus !== 'failed' && pendingSync > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2.5 text-sm text-sky-800 dark:border-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-info/40 bg-info/10 px-4 py-2.5 text-sm text-foreground">
             <span>{pendingSync} 项改动待同步到云端，正在自动重试。</span>
-            <button type="button" onClick={handleRetrySync} className="rounded-full border border-sky-400 px-2.5 py-0.5 text-xs font-semibold hover:bg-sky-100 dark:hover:bg-sky-900/50">
+            <button type="button" onClick={handleRetrySync} className="rounded-full border border-info/50 px-2.5 py-0.5 text-xs font-semibold hover:bg-info/15">
               立即同步
             </button>
           </div>
         )}
 
         {showSpaceWarning && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm text-rose-800 dark:border-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-foreground">
             <span>
               未设置空间密钥：当前云端为「全局共享」模式，任何拿到 envId 的人都能读写全部数据。建议设置空间密钥开启隔离。
             </span>
-            <button type="button" onClick={() => setCloudPanelOpen(true)} className="rounded-full border border-rose-400 px-2.5 py-0.5 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/50">
+            <button type="button" onClick={() => setCloudPanelOpen(true)} className="rounded-full border border-destructive/50 px-2.5 py-0.5 text-xs font-semibold hover:bg-destructive/15">
               去设置
             </button>
           </div>

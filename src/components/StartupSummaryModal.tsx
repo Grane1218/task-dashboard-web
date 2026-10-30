@@ -1,4 +1,4 @@
-import { CheckSquare, ListChecks, X } from 'lucide-react';
+import { CheckSquare, ClipboardList, ListChecks, X } from 'lucide-react';
 import type { Task } from '../types';
 import type { TaskTemplate } from '../types/habit';
 import { PRIORITY_LABELS } from '../types';
@@ -14,9 +14,9 @@ interface StartupSummaryModalProps {
 }
 
 const PRIORITY_TEXT: Record<Task['priority'], string> = {
-  high: 'text-red-600 dark:text-red-400',
-  medium: 'text-amber-600 dark:text-amber-400',
-  low: 'text-emerald-600 dark:text-emerald-400',
+  high: 'text-destructive',
+  medium: 'text-warning',
+  low: 'text-success',
 };
 
 export default function StartupSummaryModal({ open, pendingTasks, pendingHabits, onClose, onDismissToday }: StartupSummaryModalProps) {
@@ -32,7 +32,7 @@ export default function StartupSummaryModal({ open, pendingTasks, pendingHabits,
     >
       <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
         <div className="flex items-center gap-2.5">
-          <span className="text-xl">📋</span>
+          <ClipboardList className="h-5 w-5 text-primary" aria-hidden="true" />
           <h2 className="text-xl font-bold tracking-tight">开工提醒</h2>
         </div>
         <button type="button" onClick={onClose} aria-label="关闭" className="btn-ghost">
@@ -61,7 +61,7 @@ export default function StartupSummaryModal({ open, pendingTasks, pendingHabits,
                       className={
                         'shrink-0 text-xs ' +
                         (isOverdue(t.startDate, t.dueDate, t.status) || isDueToday(t.dueDate)
-                          ? 'font-semibold text-red-600 dark:text-red-400'
+                          ? 'font-semibold text-destructive'
                           : 'text-muted-foreground')
                       }
                     >

@@ -18,7 +18,7 @@ describe('ProgressCard', () => {
     const html = renderToStaticMarkup(createElement(ProgressCard, { total: 2, completed: 2, streak: 5 }));
 
     expect(html).toContain('scaleX(1)');
-    expect(html).toContain('bg-emerald-500');
+    expect(html).toContain('bg-success');
   });
 
   it('没有习惯时给空态提示，不显示完成文案', () => {

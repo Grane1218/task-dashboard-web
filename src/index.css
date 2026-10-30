@@ -28,6 +28,14 @@
   --border: 240 5% 89%;
   --input: 240 5% 89%;
   --ring: 211 100% 48%;
+  /* 语义状态色：成功 / 提醒 / 信息，与现有 emerald-600 / amber-600 / sky-600 观感一致 */
+  --success: 160 84% 39%;
+  --warning: 32 95% 40%;
+  --info: 199 89% 38%;
+  /* 字体栈唯一来源：body 与 Tailwind font-sans 都引用它 */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
 }
 
 .dark {
@@ -51,6 +59,9 @@
   --border: 240 4% 17%;
   --input: 240 4% 17%;
   --ring: 211 100% 58%;
+  --success: 158 64% 52%;
+  --warning: 43 96% 56%;
+  --info: 199 90% 60%;
 }
 
 html,
@@ -60,9 +71,7 @@ body,
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue',
-    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'tnum' 0;
@@ -124,6 +133,13 @@ textarea:focus-visible {
   /* 危险按钮 */
   .btn-danger {
     @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition duration-200 hover:bg-destructive/90 active:scale-[0.98];
+  }
+
+  /* 实心按钮的键盘焦点：改用前景色描边，保证在蓝/红填充上依然可见 */
+  .btn-primary:focus-visible,
+  .btn-danger:focus-visible {
+    outline-color: hsl(var(--foreground) / 0.8);
+    outline-offset: 3px;
   }
 
   /* 卡片表面：Apple 风格柔影 */
@@ -193,14 +209,14 @@ textarea:focus-visible {
   animation: fade-in 0.3s ease-out both;
 }
 
+/* 降低动态效果：一次性收口所有动画与过渡（含第三方组件的内联过渡） */
 @media (prefers-reduced-motion: reduce) {
-  .animate-modal-in,
-  .animate-backdrop-in,
-  .animate-toast-in,
-  .animate-fade-in {
-    animation: none;
-  }
-  * {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
