@@ -117,7 +117,7 @@ export default function DateScopeBar({ scope, onChange, tasks, onCreateOnDate }:
             type="button"
             onClick={() => onChange({ mode: 'all', date: scope.date, followToday: false })}
             aria-pressed={!dayMode}
-            className={'rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ' + (!dayMode ? PILL_ACTIVE : PILL_IDLE)}
+            className={'rounded-full px-3 py-1.5 text-xs font-semibold transition duration-200 ' + (!dayMode ? PILL_ACTIVE : PILL_IDLE)}
           >
             全部
           </button>
@@ -125,7 +125,7 @@ export default function DateScopeBar({ scope, onChange, tasks, onCreateOnDate }:
             type="button"
             onClick={() => selectDay(today)}
             aria-pressed={dayMode && selectedKey === today}
-            className={'rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ' + (dayMode && selectedKey === today ? PILL_ACTIVE : PILL_IDLE)}
+            className={'rounded-full px-3 py-1.5 text-xs font-semibold transition duration-200 ' + (dayMode && selectedKey === today ? PILL_ACTIVE : PILL_IDLE)}
           >
             今天
           </button>
@@ -231,7 +231,7 @@ export default function DateScopeBar({ scope, onChange, tasks, onCreateOnDate }:
           type="button"
           onClick={() => onCreateOnDate(cursorKey)}
           title={'在 ' + formatScopeLabel(cursorKey, now) + ' 新建任务'}
-          className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-all duration-200 hover:bg-accent"
+          className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-medium text-foreground transition duration-200 hover:bg-accent"
         >
           <Plus className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">新建当天任务</span>

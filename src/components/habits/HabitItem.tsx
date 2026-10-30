@@ -14,7 +14,7 @@ export default function HabitItem({ habit, done, onToggle, onEdit, onDelete, onA
   return (
     <div
       className={
-        'group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-apple transition-all duration-200 hover:shadow-apple-md ' +
+        'group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-apple transition duration-200 hover:shadow-apple-md ' +
         (done
           ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10'
           : 'border-border/60')
@@ -25,7 +25,7 @@ export default function HabitItem({ habit, done, onToggle, onEdit, onDelete, onA
         onClick={() => onToggle(habit.id)}
         aria-label={done ? '标记为未完成' : '标记为已完成'}
         className={
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 active:scale-90 ' +
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition duration-200 active:scale-90 ' +
           (done
             ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm'
             : 'border-gray-300 bg-transparent text-transparent hover:border-primary hover:text-primary/40 dark:border-gray-600')

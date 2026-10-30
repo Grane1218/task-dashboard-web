@@ -128,7 +128,7 @@ export default function HabitModal({ open, habit, onClose }: HabitModalProps) {
                 type="button"
                 onClick={() => updateField('emoji', em)}
                 className={
-                  'rounded-xl px-2 py-1 text-lg transition-all duration-200 ' +
+                  'rounded-xl px-2 py-1 text-lg transition duration-200 ' +
                   (form.emoji === em
                     ? 'bg-primary/10 ring-2 ring-primary/40'
                     : 'bg-muted hover:bg-accent')

@@ -64,7 +64,7 @@ export default function PermissionBanner() {
             type="button"
             onClick={handleAllow}
             disabled={requesting}
-            className="ml-2 shrink-0 cursor-pointer rounded-full bg-primary px-4 py-1 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
+            className="ml-2 shrink-0 cursor-pointer rounded-full bg-primary px-4 py-1 text-sm font-semibold text-primary-foreground transition duration-200 hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
           >
             {requesting ? '请求中…' : '允许'}
           </button>

@@ -103,27 +103,27 @@ textarea:focus-visible {
 @layer components {
   /* 表单输入：圆角、卡片底、蓝色聚焦光环 */
   .input-apple {
-    @apply w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-primary/45 focus:ring-4 focus:ring-primary/15;
+    @apply w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground transition duration-200 placeholder:text-muted-foreground focus:border-primary/45 focus:ring-4 focus:ring-primary/15;
   }
 
   /* 主按钮：Apple 蓝胶囊风格 */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition duration-200 hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
 
   /* 次级按钮：描边卡片 */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-all duration-200 hover:bg-accent active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition duration-200 hover:bg-accent active:scale-[0.98];
   }
 
   /* 图标按钮：圆形幽灵 */
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground active:scale-95;
+    @apply inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition duration-200 hover:bg-accent hover:text-foreground active:scale-95;
   }
 
   /* 危险按钮 */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-all duration-200 hover:bg-destructive/90 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition duration-200 hover:bg-destructive/90 active:scale-[0.98];
   }
 
   /* 卡片表面：Apple 风格柔影 */

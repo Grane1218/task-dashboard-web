@@ -114,7 +114,7 @@ export default function FocusModal({ open, task, onClose, onMarkDone }: FocusMod
                   type="button"
                   onClick={() => setDuration(min)}
                   className={
-                    'rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 ' +
+                    'rounded-full border px-4 py-1.5 text-sm font-medium transition duration-200 ' +
                     (duration === min
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border text-muted-foreground hover:bg-accent')

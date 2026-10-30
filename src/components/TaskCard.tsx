@@ -61,7 +61,7 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, over
   return (
     <article
       className={
-        'group relative rounded-2xl border border-border/60 bg-card p-4 shadow-apple transition-all duration-200 hover:shadow-apple-md' +
+        'group relative rounded-2xl border border-border/60 bg-card p-4 shadow-apple transition duration-200 hover:shadow-apple-md' +
         (overlay ? ' cursor-grabbing ring-2 ring-primary shadow-apple-lg' : '') +
         (done ? ' opacity-70' : '')
       }
@@ -122,7 +122,7 @@ export default function TaskCard({ task, onEdit, onDelete, onFocus, onView, over
             onClick={handleToggleDone}
             aria-label={done ? '取消完成' : '标记完成'}
             className={
-              'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all duration-200 ' +
+              'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 transition duration-200 ' +
               (done
                 ? 'border-emerald-500 bg-emerald-500 text-white'
                 : 'border-gray-300 text-transparent hover:border-emerald-400 hover:text-emerald-500/60 dark:border-gray-600')

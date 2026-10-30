@@ -34,7 +34,7 @@ export default function ProgressCard({ total, completed, streak, title = '今日
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={
-            'h-full rounded-full transition-all duration-500 ' +
+            'h-full rounded-full transition duration-500 ' +
             (pct === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-primary to-primary/55')
           }
           style={{ width: pct + '%' }}

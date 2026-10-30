@@ -71,7 +71,7 @@ export default function ImportModal({ open, onClose, onImport }: ImportModalProp
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 px-4 py-2.5 text-sm font-medium text-destructive transition-all duration-200 hover:bg-destructive/10 active:scale-[0.98]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 px-4 py-2.5 text-sm font-medium text-destructive transition duration-200 hover:bg-destructive/10 active:scale-[0.98]"
           >
             <TriangleAlert className="h-4 w-4" />
             覆盖导入（用备份替换全部数据）

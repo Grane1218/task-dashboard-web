@@ -23,14 +23,14 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           value={filters.search}
           onChange={(event) => onChange({ ...filters, search: event.target.value })}
           placeholder="搜索任务..."
-          className="w-full rounded-full border-0 bg-muted/70 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-all duration-200 placeholder:text-muted-foreground focus:bg-card focus:ring-4 focus:ring-primary/15"
+          className="w-full rounded-full border-0 bg-muted/70 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition duration-200 placeholder:text-muted-foreground focus:bg-card focus:ring-4 focus:ring-primary/15"
         />
       </div>
 
       <select
         value={filters.priority}
         onChange={(event) => onChange({ ...filters, priority: event.target.value as Priority | 'all' })}
-        className="rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/45 focus:ring-4 focus:ring-primary/15"
+        className="rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition duration-200 focus:border-primary/45 focus:ring-4 focus:ring-primary/15"
       >
         <option value="all">全部优先级</option>
         {(Object.keys(PRIORITY_LABELS) as Priority[]).map((priority) => (
@@ -43,7 +43,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
       <select
         value={filters.status}
         onChange={(event) => onChange({ ...filters, status: event.target.value as TaskStatus | 'all' })}
-        className="rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-all duration-200 focus:border-primary/45 focus:ring-4 focus:ring-primary/15"
+        className="rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition duration-200 focus:border-primary/45 focus:ring-4 focus:ring-primary/15"
       >
         <option value="all">全部状态</option>
         {(Object.keys(STATUS_LABELS) as TaskStatus[]).map((status) => (
@@ -57,7 +57,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <button
           type="button"
           onClick={() => onChange(DEFAULT_FILTERS)}
-          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground transition-all duration-200 hover:bg-accent"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 py-2.5 text-sm text-foreground transition duration-200 hover:bg-accent"
         >
           <FilterX className="h-4 w-4" />
           清除筛选

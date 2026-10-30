@@ -170,7 +170,7 @@ export default function TaskModal({ open, task, onClose, initialStartDate = null
                 type="button"
                 onClick={() => updateField('priority', priority)}
                 className={
-                  'rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 ' +
+                  'rounded-xl border px-3 py-2 text-sm font-medium transition duration-200 ' +
                   (form.priority === priority ? PRIORITY_ACTIVE_STYLES[priority] : PRIORITY_BUTTON_STYLES[priority])
                 }
               >
@@ -191,7 +191,7 @@ export default function TaskModal({ open, task, onClose, initialStartDate = null
                   type="button"
                   onClick={() => updateField('repeat', option.value)}
                   className={
-                    'rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-200 ' +
+                    'rounded-xl border px-3 py-2 text-sm font-medium transition duration-200 ' +
                     (active
                       ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/25'
                       : 'border-border text-muted-foreground hover:bg-accent')

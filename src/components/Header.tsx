@@ -130,7 +130,7 @@ export default function Header({ view, onSwitchView, onOpenSettings, onOpenCloud
               onClick={() => onSwitchView(tab.key)}
               aria-current={view === tab.key ? 'page' : undefined}
               className={
-                'rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ' +
+                'rounded-full px-3.5 py-1.5 text-sm font-medium transition duration-200 ' +
                 (view === tab.key
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground')
@@ -201,7 +201,7 @@ export default function Header({ view, onSwitchView, onOpenSettings, onOpenCloud
             <button
               type="button"
               onClick={onCreate}
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-apple transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-apple transition duration-200 hover:bg-primary/90 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">{isBoard || isCalendar ? '新建任务' : '添加习惯'}</span>
